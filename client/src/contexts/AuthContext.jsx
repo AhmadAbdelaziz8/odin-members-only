@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -18,8 +18,8 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/users/me', { withCredentials: true });
-      setUser(response.data);
+      const data = await api.get('/api/users/me');
+      setUser(data);
     } catch (error) {
       console.error('Auth check error:', error);
     } finally {
@@ -29,13 +29,10 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/users/login', 
-        { email, password },
-        { withCredentials: true }
-      );
-      setUser(response.data);
+      const data = await api.post('/api/users/login', { email, password });
+      setUser(data);
       toast.success('Logged in successfully');
-      return response.data;
+      return data;
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed');
@@ -45,9 +42,9 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/users/register', userData);
+      const data = await api.post('/api/users/register', userData);
       toast.success('Registration successful! Please log in.');
-      return response.data;
+      return data;
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Registration failed');
@@ -57,7 +54,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await axios.post('/api/users/logout', {}, { withCredentials: true });
+      await api.post('/api/users/logout', {});
       setUser(null);
       toast.success('Logged out successfully');
     } catch (error) {
@@ -69,16 +66,15 @@ export function AuthProvider({ children }) {
 
   const updateMembership = async (userId, membershipStatus) => {
     try {
-      const response = await axios.patch(
+      const data = await api.patch(
         `/api/users/membership/${userId}`,
-        { membershipStatus },
-        { withCredentials: true }
+        { membershipStatus }
       );
       if (user?.id === userId) {
-        setUser(response.data);
+        setUser(data);
       }
       toast.success('Membership status updated successfully');
-      return response.data;
+      return data;
     } catch (error) {
       console.error('Update membership error:', error);
       toast.error(error.response?.data?.message || 'Failed to update membership status');
